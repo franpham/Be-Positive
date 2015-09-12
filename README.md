@@ -1,0 +1,1 @@
+Donate blood to maximize the inventory of all blood types.
