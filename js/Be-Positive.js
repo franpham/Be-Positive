@@ -54,11 +54,6 @@ BloodTransfusionRules = {
         return !isPos || (blood_inventory[BloodType.O_NEG] > blood_inventory[BloodType.O_POS]) ? BloodType.O_NEG : BloodType.O_POS;
       }
       var inventory = Object.keys(blood_inventory).map(function (key){ return {type : key, num : blood_inventory[key]} });
-      // var inventory = [];
-      // var keys = Object.keys(blood_inventory);
-      // for (var i = 0; i < keys.length; i++) {
-      //   inventory.push({ type : keys[i], num : blood_inventory[keys[i]] });
-      // }
       if (!isPos) {           // negative recipient cannot receive positive donor's blood;
         inventory = inventory.filter(function(val){ return val.type.indexOf('NEG') > 0; });
       }
