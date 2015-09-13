@@ -42,32 +42,27 @@ BloodTransfusionRules = {
    *   O_POS  : Integer,
    *   O_NEG  : Integer
    * }
-   patient = A
-   blood = C = AB
-   AB.indexOf(patient.blood) === true
-   *
    */
 
-  // since type O can be given to any recipient, assign it a key of 'ABOC'
+  // since type O can be given to any recipient, assign it a key of 'ABCO'
   // since type AB can only be given to AB recipient, assign it a key of 'C'
   // map the blood bank to an array of objects containing blood_type : inventory pairs;
   receive_patient : function (blood_inventory, patient) {
-    var isPos = ptype.indexOf('POS') > 0;
-    var inventory = Object.keys(blood_inventory).map(function (key){
-        var temp = key.indexOf('AB') === 0 ? 'C_' + (isPos ? 'POS' : 'NEG') : (key.indexOf('O') ? 'ABOC_' + (isPos ? 'POS' : 'NEG') : key);
-        return {type : temp, num : blood_inventory[key]}
+    var ptype = patient.blood_type;                // ptype = patient's blood type regardless of +/- antigen;
+    var inventory = Object.keys(blood_inventory).map( function(key) {
+      var temp = key.indexOf('AB') === 0 ? ('C_' + (key.indexOf('POS') > 0 ? 'POS' : 'NEG')) :
+                (key.indexOf('O') === 0 ? 'AB' + key : 'C' + key);    // to maximize type O, don't give to type 'C';
+      return {type : temp, num : blood_inventory[key], name : key}
     });
-    if (!isPos) {           // negative recipient cannot receive positive donor's blood so filter it out;
-      inventory = inventory.filter(function(val){ return val.type.indexOf('NEG') > 0; });
-    }
-    inventory.sort(function (a, b) {    // sort blood types in order of max inventory;
-      return a.num > b.num ? 1 : (a.num < b.num ? -1 : 0);
-    });
-    var ptype = patient.blood_type.substr(0, patient.blood_type.indexOf('_'));  // get the patient's type regardless of +/- antigen;
-    for (var i = inventory.length - 1; i >= 0; i--) {
-      // if the bank's blood has the patient's blood (aka: if patient's type is found in the name of inventory blood), return it;
+    if (patient.blood_type.indexOf('NEG') > 0) {   // negative recipient cannot receive positive donor's blood so filter it out;
+      inventory = inventory.filter( function(val) {return val.type.indexOf('NEG') > 0;} );
+    }                                              // sort blood types according to number in stock;
+    inventory.sort( function(a, b) {return a.num > b.num ? 1 : (a.num < b.num ? -1 : 0);} );
+    ptype = ptype.indexOf('AB') === 0 ? 'C' : (ptype.indexOf('O_') === 0 ? 'O_' : ptype.substr(0, 1));
+    for (var i = inventory.length - 1; i >= 0; i--) {         // MUST search for 'O_' since 'O' is in 'POS';
+      // if the bank's blood has the patient's blood (ie: if patient's type is found in the name of inventory's blood), return it;
       if (inventory[i].type.indexOf(ptype) >= 0)
-        return inventory[i].type;
+        return inventory[i].name;          // MUST return the original name!
     }
     return false;
   }
