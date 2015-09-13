@@ -54,8 +54,8 @@ BloodTransfusionRules = {
   receive_patient : function (blood_inventory, patient) {
     var isPos = ptype.indexOf('POS') > 0;
     var inventory = Object.keys(blood_inventory).map(function (key){
-                    var temp = key.indexOf('AB') === 0 ? 'C' : (key.indexOf('O') ? 'ABOC' : key);
-                    return {type : temp, num : blood_inventory[key]}
+        var temp = key.indexOf('AB') === 0 ? 'C_' + (isPos ? 'POS' : 'NEG') : (key.indexOf('O') ? 'ABOC_' + (isPos ? 'POS' : 'NEG') : key);
+        return {type : temp, num : blood_inventory[key]}
     });
     if (!isPos) {           // negative recipient cannot receive positive donor's blood so filter it out;
       inventory = inventory.filter(function(val){ return val.type.indexOf('NEG') > 0; });
