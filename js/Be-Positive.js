@@ -51,25 +51,26 @@ BloodTransfusionRules = {
   receive_patient : function (blood_inventory, patient) {
       var isPos = patient.blood_type.indexOf('POS') > 0;
       if (patient.blood_type.indexOf('O_') === 0) {     // most restrictive recipient is if patient is type O;
-        return (!isPos || (blood_inventory[BloodType.O_NEG] > blood_inventory[BloodType.O_POS])) ? BloodType.O_NEG : BloodType.O_POS;
+        return !isPos || (blood_inventory[BloodType.O_NEG] > blood_inventory[BloodType.O_POS]) ? BloodType.O_NEG : BloodType.O_POS;
       }
-      // var inventory = Object.keys(blood_inventory).map(function (key){ return {type : key, num : blood_inventory[key]} });
-      var inventory = [];
-      var keys = Object.keys(blood_inventory);
-      for (var i = 0; i < keys.length; i++) {
-        inventory.push({ type : keys[i], num : blood_inventory[keys[i]] });
-      }
+      var inventory = Object.keys(blood_inventory).map(function (key){ return {type : key, num : blood_inventory[key]} });
+      // var inventory = [];
+      // var keys = Object.keys(blood_inventory);
+      // for (var i = 0; i < keys.length; i++) {
+      //   inventory.push({ type : keys[i], num : blood_inventory[keys[i]] });
+      // }
       if (!isPos) {           // negative recipient cannot receive positive donor's blood;
         inventory = inventory.filter(function(val){ return val.type.indexOf('NEG') > 0; });
       }
-      if (patient.blood_type.indexOf('AB') === -1) {        // type A & type B cannot receive type AB blood;
-        inventory = inventory.filter(function (val){
-                              return patient.blood_type.indexOf('A_') === 0 ? val.type.indexOf('B_') === -1 : val.type.indexOf('A_') === -1;
+      if (patient.blood_type.indexOf('AB') === -1) {        // type AB can receive all blood types, but AB- recipient can't receive AB+;
+        inventory = inventory.filter(function (val){        // type A & type B cannot receive each other's blood or type AB blood;
+                              return val.type.indexOf('AB') === 0 ? false :
+                                (patient.blood_type.indexOf('A_') === 0 ? val.type.indexOf('B_') === -1 : val.type.indexOf('A_') === -1);
                     });
       }
       inventory.sort(function (a, b) {    // sort compatible blood in order of max inventory;
         return a.num > b.num ? 1 : (a.num < b.num ? -1 : 0);
       });
-      return inventory[0].type;
+      return inventory[inventory.length - 1].type;
   }
 };
